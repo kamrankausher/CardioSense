@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — CardioSense AI{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-container page-wide">
+    <div class="page-header">
+        <h1>Analytics Dashboard</h1>
+        <p>Overview of all patient predictions and risk analysis</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card fade-in">
+            <div class="stat-icon blue">📊</div>
+            <div class="stat-number" style="color:var(--primary)">{{ stats.total }}</div>
+            <div class="stat-label">Total Predictions</div>
+        </div>
+        <div class="stat-card fade-in" style="animation-delay:0.1s">
+            <div class="stat-icon red">🔴</div>
+            <div class="stat-number" style="color:var(--danger)">{{ stats.high_risk }}</div>
+            <div class="stat-label">High Risk</div>
+        </div>
+        <div class="stat-card fade-in" style="animation-delay:0.15s">
+            <div class="stat-icon yellow">🟡</div>
+            <div class="stat-number" style="color:var(--warning)">{{ stats.moderate_risk }}</div>
+            <div class="stat-label">Moderate Risk</div>
+        </div>
+        <div class="stat-card fade-in" style="animation-delay:0.2s">
+            <div class="stat-icon green">🟢</div>
+            <div class="stat-number" style="color:var(--success)">{{ stats.low_risk }}</div>
+            <div class="stat-label">Low Risk</div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-grid">
+        <div class="chart-card">
+            <h3>Risk Distribution</h3>
+            <canvas id="riskChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Age vs Probability</h3>
+            <canvas id="ageChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Model Usage</h3>
+            <canvas id="modelChart"></canvas>
+        </div>
+        <div class="chart-card" style="display:flex;flex-direction:column;justify-content:center;align-items:center">
+            <h3 style="margin-bottom:1rem">Quick Actions</h3>
+            <a href="/predict" class="btn-primary" style="width:auto;padding:0.7rem 2rem;text-decoration:none;margin-bottom:0.75rem">+ New Prediction</a>
+            <a href="/batch" class="btn-outline" style="text-decoration:none">📁 Batch Upload</a>
+        </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)">
+            <h3 style="font-size:1rem;font-weight:700">Recent Predictions</h3>
+        </div>
+        {% if records %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Age</th>
+                    <th>Model</th>
+                    <th>Probability</th>
+                    <th>Risk</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records[:25] %}
+                <tr>
+                    <td>{{ r.patient_name or 'Anonymous' }}</td>
+                    <td>{{ r.age }}</td>
+                    <td>{{ r.model_used.replace('_', ' ').title() }}</td>
+                    <td>{{ r.probability }}%</td>
+                    <td>
+                        <span class="risk-badge {% if r.risk_level == 'High' %}risk-high{% elif r.risk_level == 'Moderate' %}risk-moderate{% else %}risk-low{% endif %}">
+                            {{ r.risk_level }}
+                        </span>
+                    </td>
+                    <td style="color:var(--text-muted)">{{ r.created_at.strftime('%d %b %Y') }}</td>
+                    <td><a href="/result/{{ r.id }}" class="btn-ghost" style="padding:0.3rem 0.6rem;font-size:0.78rem">View →</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <p>No predictions yet</p>
+            <a href="/predict" class="btn-primary" style="width:auto;display:inline-block;padding:0.6rem 1.5rem;text-decoration:none">Make First Prediction</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await fetch('/api/dashboard/chart-data');
+            const data = await res.json();
+
+            createRiskDoughnut('riskChart', data.risk_distribution);
+            createAgeScatter('ageChart', data.age_data);
+            if (Object.keys(data.model_usage).length > 0) {
+                createModelUsagePie('modelChart', data.model_usage);
+            }
+        } catch (err) {
+            console.error('Failed to load chart data:', err);
+        }
+    });
+</script>
+{% endblock %}

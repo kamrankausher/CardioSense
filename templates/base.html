@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CardioSense AI — Heart disease risk prediction powered by machine learning with SHAP explainability.">
+    <title>{% block title %}CardioSense AI{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='assets/logo.svg') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand" style="text-decoration:none">
+            <img src="{{ url_for('static', filename='assets/logo.svg') }}" alt="Logo">
+            CardioSense AI
+        </a>
+        <div class="navbar-links">
+            <a href="/" class="{{ 'active' if request.path == '/' }}">Home</a>
+            <a href="/predict" class="{{ 'active' if request.path == '/predict' }}">Predict</a>
+            <a href="/dashboard" class="{{ 'active' if request.path == '/dashboard' }}">Dashboard</a>
+            <a href="/compare" class="{{ 'active' if request.path == '/compare' }}">Models</a>
+            <a href="/batch" class="{{ 'active' if request.path == '/batch' }}">Batch</a>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <footer class="footer">
+        <p>CardioSense AI v2 — For educational &amp; research purposes only. Not medical advice.</p>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

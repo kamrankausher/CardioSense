@@ -1,0 +1,29 @@
+{
+  "random_forest": {
+    "accuracy": 81.97,
+    "auc_roc": 0.9167,
+    "precision": 77.5,
+    "recall": 93.94,
+    "f1_score": 84.93,
+    "cv_mean": 81.78,
+    "cv_std": 5.32
+  },
+  "xgboost": {
+    "accuracy": 77.05,
+    "auc_roc": 0.8333,
+    "precision": 75.68,
+    "recall": 84.85,
+    "f1_score": 80.0,
+    "cv_mean": 79.28,
+    "cv_std": 3.29
+  },
+  "logistic_regression": {
+    "accuracy": 80.33,
+    "auc_roc": 0.8712,
+    "precision": 76.92,
+    "recall": 90.91,
+    "f1_score": 83.33,
+    "cv_mean": 82.59,
+    "cv_std": 5.11
+  }
+}

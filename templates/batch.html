@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Batch Upload — CardioSense AI{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>Batch Prediction</h1>
+        <p>Upload a CSV file with patient data to get predictions for all rows at once</p>
+    </div>
+
+    <div class="card">
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('csv-input').click()">
+            <div class="upload-zone-icon">📁</div>
+            <h3>Drop CSV file here or click to browse</h3>
+            <p>CSV must include columns: age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal</p>
+            <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="handleFileSelect(this)">
+        </div>
+
+        <div id="batch-status" style="text-align:center;margin-top:1.5rem;display:none"></div>
+    </div>
+
+    <div id="batch-results" style="margin-top:1.5rem"></div>
+
+    <div class="card" style="margin-top:1.5rem">
+        <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem">📋 CSV Format Example</h3>
+        <div style="overflow-x:auto">
+            <table class="data-table" style="font-size:0.78rem">
+                <thead><tr>
+                    <th>age</th><th>sex</th><th>cp</th><th>trestbps</th><th>chol</th><th>fbs</th>
+                    <th>restecg</th><th>thalach</th><th>exang</th><th>oldpeak</th><th>slope</th><th>ca</th><th>thal</th>
+                </tr></thead>
+                <tbody>
+                    <tr><td>52</td><td>1</td><td>0</td><td>125</td><td>212</td><td>0</td><td>1</td><td>168</td><td>0</td><td>1.0</td><td>2</td><td>2</td><td>3</td></tr>
+                    <tr><td>63</td><td>0</td><td>3</td><td>140</td><td>260</td><td>1</td><td>0</td><td>130</td><td>1</td><td>3.5</td><td>1</td><td>0</td><td>2</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+    // Drag and drop
+    const zone = document.getElementById('upload-zone');
+    ['dragenter', 'dragover'].forEach(e => {
+        zone.addEventListener(e, ev => { ev.preventDefault(); zone.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(e => {
+        zone.addEventListener(e, ev => { ev.preventDefault(); zone.classList.remove('dragover'); });
+    });
+    zone.addEventListener('drop', ev => {
+        const file = ev.dataTransfer.files[0];
+        if (file && file.name.endsWith('.csv')) handleBatchUpload(file);
+        else showToast('Please upload a .csv file', 'warning');
+    });
+
+    function handleFileSelect(input) {
+        const file = input.files[0];
+        if (file) handleBatchUpload(file);
+    }
+</script>
+{% endblock %}

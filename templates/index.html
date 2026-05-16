@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}CardioSense AI — Heart Disease Prediction{% endblock %}
+
+{% block content %}
+<div class="hero slide-up">
+    <div class="hero-badge">🫀 AI-Powered Heart Risk Assessment</div>
+    <h1>Predict Heart Disease Risk with Explainable AI</h1>
+    <p>CardioSense uses machine learning models trained on clinical data to assess heart disease risk — with transparent SHAP explanations for every prediction.</p>
+    <div class="hero-actions">
+        <a href="/predict" class="btn-primary" style="text-decoration:none">Start Assessment →</a>
+        <a href="/compare" class="btn-outline" style="text-decoration:none">View Model Performance</a>
+    </div>
+</div>
+
+<div class="features-grid">
+    <div class="feature-card fade-in">
+        <div class="feature-icon">🧠</div>
+        <h3>3 ML Models</h3>
+        <p>Choose from Random Forest, XGBoost, or Logistic Regression — each trained and validated on the UCI Heart Disease dataset.</p>
+    </div>
+    <div class="feature-card fade-in" style="animation-delay:0.1s">
+        <div class="feature-icon">📊</div>
+        <h3>SHAP Explanations</h3>
+        <p>Every prediction comes with feature-level explanations showing exactly which clinical factors drove the risk score.</p>
+    </div>
+    <div class="feature-card fade-in" style="animation-delay:0.2s">
+        <div class="feature-icon">📄</div>
+        <h3>PDF Reports</h3>
+        <p>Generate professional medical-style PDF reports with patient info, risk assessment, and SHAP analysis included.</p>
+    </div>
+    <div class="feature-card fade-in" style="animation-delay:0.3s">
+        <div class="feature-icon">📈</div>
+        <h3>Analytics Dashboard</h3>
+        <p>Track all predictions with interactive charts showing risk distribution, age trends, and model usage over time.</p>
+    </div>
+    <div class="feature-card fade-in" style="animation-delay:0.4s">
+        <div class="feature-icon">📁</div>
+        <h3>Batch Predictions</h3>
+        <p>Upload a CSV file with multiple patients and get instant risk predictions for the entire batch at once.</p>
+    </div>
+    <div class="feature-card fade-in" style="animation-delay:0.5s">
+        <div class="feature-icon">🔬</div>
+        <h3>Model Comparison</h3>
+        <p>Side-by-side metrics comparison of all models — accuracy, AUC-ROC, precision, recall, and cross-validation scores.</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Model Comparison — CardioSense AI{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-container page-wide">
+    <div class="page-header">
+        <h1>Model Performance Comparison</h1>
+        <p>Side-by-side evaluation of all trained models</p>
+    </div>
+
+    <div id="model-cards-container" class="model-cards"></div>
+
+    <div class="chart-grid" style="margin-top:2rem">
+        <div class="chart-card" style="grid-column:span 2">
+            <h3>Metrics Comparison</h3>
+            <canvas id="metricsChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+        <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem">📖 Model Details</h3>
+        <table class="data-table">
+            <thead>
+                <tr><th>Model</th><th>Type</th><th>Key Strength</th><th>Best For</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Random Forest</td>
+                    <td>Ensemble (Bagging)</td>
+                    <td>Robust to outliers, handles mixed data</td>
+                    <td>General-purpose, balanced performance</td>
+                </tr>
+                <tr>
+                    <td>XGBoost</td>
+                    <td>Ensemble (Boosting)</td>
+                    <td>High accuracy, gradient optimization</td>
+                    <td>Maximum predictive power</td>
+                </tr>
+                <tr>
+                    <td>Logistic Regression</td>
+                    <td>Linear Model</td>
+                    <td>Interpretable, fast inference</td>
+                    <td>Baseline, regulatory compliance</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await fetch('/api/model-metrics');
+            const json = await res.json();
+
+            if (!json.success) {
+                document.getElementById('model-cards-container').innerHTML =
+                    '<div class="empty-state" style="grid-column:span 3"><p>Models not trained yet. Run <code>python ml/train.py</code> first.</p></div>';
+                return;
+            }
+
+            const metrics = json.data;
+            const models = Object.keys(metrics);
+
+            // Find best model by accuracy
+            let bestModel = models[0];
+            models.forEach(m => {
+                if (metrics[m].accuracy > metrics[bestModel].accuracy) bestModel = m;
+            });
+
+            // Render model cards
+            const container = document.getElementById('model-cards-container');
+            let html = '';
+            models.forEach(name => {
+                const m = metrics[name];
+                const displayName = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const isBest = name === bestModel;
+
+                html += `
+                <div class="model-card fade-in ${isBest ? 'best' : ''}">
+                    <h3>${displayName}</h3>
+                    <div style="font-size:2.25rem;font-weight:900;color:var(--primary);margin:0.5rem 0;letter-spacing:-0.03em">${m.accuracy}%</div>
+                    <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem">Test Accuracy</div>
+                    <div class="model-metric"><span class="model-metric-label">AUC-ROC</span><span class="model-metric-value">${m.auc_roc}</span></div>
+                    <div class="model-metric"><span class="model-metric-label">Precision</span><span class="model-metric-value">${m.precision}%</span></div>
+                    <div class="model-metric"><span class="model-metric-label">Recall</span><span class="model-metric-value">${m.recall}%</span></div>
+                    <div class="model-metric"><span class="model-metric-label">F1 Score</span><span class="model-metric-value">${m.f1_score}%</span></div>
+                    <div class="model-metric"><span class="model-metric-label">CV Mean</span><span class="model-metric-value">${m.cv_mean}% ± ${m.cv_std}%</span></div>
+                </div>`;
+            });
+            container.innerHTML = html;
+
+            // Create bar chart
+            createModelBar('metricsChart', metrics);
+
+        } catch (err) {
+            console.error('Failed to load metrics:', err);
+        }
+    });
+</script>
+{% endblock %}

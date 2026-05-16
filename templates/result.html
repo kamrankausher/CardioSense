@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Result — CardioSense AI{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+    <!-- Risk Hero -->
+    <div class="result-hero {% if record.risk_level == 'High' %}risk-high-bg{% elif record.risk_level == 'Moderate' %}risk-moderate-bg{% else %}risk-low-bg{% endif %} slide-up">
+        <div class="result-prediction">
+            {% if record.prediction == 1 %}⚠️ Heart Disease Detected{% else %}✅ No Heart Disease Detected{% endif %}
+        </div>
+        <div class="result-probability" id="probability-display" style="color: {% if record.risk_level == 'High' %}var(--danger){% elif record.risk_level == 'Moderate' %}var(--warning){% else %}var(--success){% endif %}">
+            <span id="probability-value">0</span>
+        </div>
+        <div class="result-subtitle">Risk Probability</div>
+        <div style="margin-top: 0.75rem">
+            <span class="risk-badge {% if record.risk_level == 'High' %}risk-high{% elif record.risk_level == 'Moderate' %}risk-moderate{% else %}risk-low{% endif %}">
+                {{ record.risk_level }} Risk
+            </span>
+        </div>
+
+        <!-- Risk Meter -->
+        <div class="risk-meter-container" style="max-width:500px;margin:1.5rem auto 0">
+            <div class="risk-meter">
+                <div class="risk-meter-needle" id="risk-needle" style="left:0%"></div>
+            </div>
+            <div class="risk-meter-labels">
+                <span>0% — Low</span>
+                <span>50% — Moderate</span>
+                <span>100% — High</span>
+            </div>
+        </div>
+
+        <div class="result-actions">
+            <a href="/api/report/{{ record.id }}" class="btn-outline" style="text-decoration:none">📄 Download PDF Report</a>
+            <a href="/predict" class="btn-outline" style="text-decoration:none">🔄 New Assessment</a>
+            <a href="/dashboard" class="btn-ghost" style="text-decoration:none">View Dashboard →</a>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <!-- SHAP Explanations -->
+        <div class="card">
+            <div class="shap-section">
+                <h3>🔍 Top Risk Factors (SHAP Analysis)</h3>
+                <div id="shap-container" class="shap-bar-container"></div>
+                <p style="font-size:0.75rem;color:var(--text-faint);margin-top:1rem">
+                    <strong>Red bars</strong> increase risk · <strong>Green bars</strong> decrease risk · Values show SHAP contribution magnitude
+                </p>
+            </div>
+        </div>
+
+        <!-- Patient Info -->
+        <div class="card">
+            <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem">📋 Assessment Details</h3>
+            <div style="margin-bottom:1rem">
+                <div class="input-item" style="background:var(--primary-light);border-radius:8px;margin-bottom:0.5rem">
+                    <span class="input-item-label" style="color:var(--primary)">Patient</span>
+                    <span class="input-item-value" style="color:var(--primary)">{{ record.patient_name or 'Anonymous' }}</span>
+                </div>
+                <div class="input-item">
+                    <span class="input-item-label">Model Used</span>
+                    <span class="input-item-value">{{ record.model_used.replace('_', ' ').title() }}</span>
+                </div>
+                <div class="input-item">
+                    <span class="input-item-label">Assessment Date</span>
+                    <span class="input-item-value">{{ record.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+                </div>
+                <div class="input-item" style="background:#f9fafb">
+                    <span class="input-item-label">Record ID</span>
+                    <span class="input-item-value">#{{ record.id }}</span>
+                </div>
+            </div>
+
+            <h3 style="font-size:0.85rem;font-weight:700;margin-bottom:0.75rem;margin-top:1.5rem">Clinical Input Values</h3>
+            <div id="input-values-container"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+<script>
+    const shapData = {{ record.shap_data | safe }};
+    const inputData = {{ record.input_data | safe }};
+    const probability = {{ record.probability }};
+
+    const featureLabels = {
+        'age': 'Age', 'sex': 'Sex', 'cp': 'Chest Pain Type',
+        'trestbps': 'Resting BP', 'chol': 'Cholesterol', 'fbs': 'Fasting Blood Sugar',
+        'restecg': 'Resting ECG', 'thalach': 'Max Heart Rate', 'exang': 'Exercise Angina',
+        'oldpeak': 'ST Depression', 'slope': 'ST Slope', 'ca': 'Major Vessels', 'thal': 'Thalassemia'
+    };
+
+    // Render input values
+    const ivContainer = document.getElementById('input-values-container');
+    if (ivContainer && inputData) {
+        let html = '';
+        for (const [key, val] of Object.entries(inputData)) {
+            html += `<div class="input-item">
+                <span class="input-item-label">${featureLabels[key] || key}</span>
+                <span class="input-item-value">${val}</span>
+            </div>`;
+        }
+        ivContainer.innerHTML = html;
+    }
+
+    // Initialize animations
+    document.addEventListener('DOMContentLoaded', () => {
+        initResultAnimations(probability, shapData);
+    });
+</script>
+{% endblock %}
